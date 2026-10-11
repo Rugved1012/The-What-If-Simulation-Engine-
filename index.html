@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CashFlow OS — The ₹10,000 / 30-Day Decision Simulator</title>
+  <meta name="description" content="A vibrant Gen Z personal finance simulator. Manage a ₹10,000 monthly allowance across 30 days and dynamically model every financial shock in real-time.">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- Ambient Radiant Mesh & Mouse Tracking Spotlight -->
+  <div class="ambient-mesh" id="ambientMesh"></div>
+  <div class="mouse-spotlight" id="mouseSpotlight"></div>
+
+  <!-- Confetti Celebration Canvas -->
+  <canvas id="confettiCanvas"></canvas>
+
+  <div class="app-container">
+
+    <!-- ==========================================================================
+         TOP APPLICATION HEADER
+         ========================================================================== -->
+    <header class="app-header" role="banner">
+      <div class="brand-wrapper">
+        <div class="brand-icon-box">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+          </svg>
+        </div>
+        <div class="brand-titles">
+          <h1 class="brand-title">
+            CashFlow OS
+            <span class="badge-tag">₹10K / 30D</span>
+          </h1>
+          <span class="brand-subtitle">Real-Time Decision Simulator</span>
+        </div>
+      </div>
+
+      <!-- Center Day Timeline Scrubber Pill -->
+      <div class="day-scrubber-pill" aria-label="Timeline Scrubber">
+        <div class="day-badge-label">
+          <span class="day-pill-circle"></span>
+          <span class="day-count-display" id="dayCountDisplay">Day 07 of 30</span>
+        </div>
+
+        <input 
+          type="range" 
+          id="dayTimelineSlider" 
+          class="day-slider-range" 
+          min="1" 
+          max="30" 
+          value="7" 
+          aria-label="Timeline Slider"
+        >
+
+        <div style="display:flex; align-items:center; gap:6px;">
+          <button class="btn-timeline-action" id="btnPlayCycle" title="Autoplay month simulation">
+            <span id="playCycleLabel">▶ Play 30 Days</span>
+          </button>
+          <button class="btn-timeline-action" id="btnNextDay" title="Advance one day">
+            <span>+1 Day</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Right Header Actions (Health Score, SFX & Reset) -->
+      <div class="header-actions">
+        <!-- Live Health Score Badge -->
+        <div class="health-score-badge" title="Financial Health & Discipline Rating">
+          <div class="health-letter-box" id="healthGradeBox">A</div>
+          <div>
+            <div class="health-label-text">Health Score</div>
+            <div class="health-value-text" id="healthScoreDisplay">84/100</div>
+          </div>
+        </div>
+
+        <!-- Audio SFX Toggle Button -->
+        <button class="btn-icon-subtle" id="sfxToggleBtn" title="Toggle Synthesized Audio Feedback" aria-label="Toggle SFX">
+          <svg id="sfxIconOn" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+            <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+          </svg>
+          <svg id="sfxIconOff" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none;">
+            <line x1="1" y1="1" x2="23" y2="23"></line>
+            <path d="M9 9v3a3 3 0 0 0 5.12 2.12M15 9.34V4a3 3 0 0 0-5.94-.6"></path>
+            <path d="M17 16.95A7 7 0 0 1 5 12v-2m14 0v2a7 7 0 0 1-.11 1.23"></path>
+            <line x1="12" y1="19" x2="12" y2="23"></line>
+            <line x1="8" y1="23" x2="16" y2="23"></line>
+          </svg>
+        </button>
+
+        <!-- Engine Reset Button -->
+        <button class="btn-reset" id="resetEngineBtn" title="Reset ecosystem to Day 7 initial baseline">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+            <path d="M3 3v5h5"/>
+          </svg>
+          <span>Reset</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- ==========================================================================
+         GHOST SIMULATION ACTIVE BANNER
+         ========================================================================== -->
+    <div class="simulation-active-banner" id="simulationActiveBanner">
+      <div class="banner-content">
+        <span class="banner-tag">Ghost Mode Active</span>
+        <span class="banner-text" id="simBannerDescription">Testing Move: "Buy Sneaker Drop on Sale (-₹2,499)"</span>
+      </div>
+      <div class="banner-controls">
+        <button class="btn-banner-commit" id="bannerCommitBtn">⚡ Commit Action</button>
+        <button class="btn-banner-discard" id="bannerDiscardBtn">✕ Discard</button>
+      </div>
+    </div>
+
+    <!-- ==========================================================================
+         CAPITAL ALLOCATION ARCHITECTURE BAR
+         ========================================================================== -->
+    <section class="allocation-strip-card" aria-label="Portfolio Distribution">
+      <div class="allocation-header-row">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--cyan-primary)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path>
+            <path d="M22 12A10 10 0 0 0 12 2v10z"></path>
+          </svg>
+          <span style="font-size:0.82rem; font-weight:800; text-transform:uppercase; letter-spacing:0.04em;">Capital Allocation Architecture</span>
+          <span style="font-size:0.75rem; color:var(--text-dim);">(₹10,000 Portfolio)</span>
+        </div>
+        <span id="allocSummaryText" style="font-family:var(--font-mono); font-size:0.85rem; font-weight:800; color:var(--cyan-primary);">₹4,180 Unlocked Liquid</span>
+      </div>
+
+      <div class="allocation-progress-track">
+        <div class="alloc-seg seg-liquid" id="segLiquid" style="width: 41.8%;" title="Liquid Capital"></div>
+        <div class="alloc-seg seg-fixed" id="segFixed" style="width: 32.0%;" title="Fixed Commitments"></div>
+        <div class="alloc-seg seg-savings" id="segSavings" style="width: 15.0%;" title="Savings Target"></div>
+        <div class="alloc-seg seg-spent" id="segSpent" style="width: 11.2%;" title="Discretionary Spent"></div>
+      </div>
+
+      <div class="allocation-badges-row">
+        <div class="alloc-badge-chip">
+          <span class="alloc-dot dot-liquid"></span>
+          <span class="alloc-label">Liquid:</span>
+          <span class="alloc-val" id="allocValLiquid">₹4,180 (41.8%)</span>
+        </div>
+        <div class="alloc-badge-chip">
+          <span class="alloc-dot dot-fixed"></span>
+          <span class="alloc-label">Fixed:</span>
+          <span class="alloc-val" id="allocValFixed">₹3,200 (32.0%)</span>
+        </div>
+        <div class="alloc-badge-chip">
+          <span class="alloc-dot dot-savings"></span>
+          <span class="alloc-label">Savings:</span>
+          <span class="alloc-val" id="allocValSavings">₹1,500 (15.0%)</span>
+        </div>
+        <div class="alloc-badge-chip">
+          <span class="alloc-dot dot-spent"></span>
+          <span class="alloc-label">Spent (D1–D7):</span>
+          <span class="alloc-val" id="allocValSpent">₹1,120 (11.2%)</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==========================================================================
+         HERO METRICS 4-CARD STRIP
+         ========================================================================== -->
+    <section class="hero-metrics-grid" aria-label="Key Financial Metrics">
+      <!-- 1. AVAILABLE LIQUID CAPITAL -->
+      <article class="metric-card card-liquid" id="cardLiquid">
+        <div class="metric-header">
+          <span class="metric-title">Available Liquid Capital</span>
+          <div class="metric-icon-bubble">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+            </svg>
+          </div>
+        </div>
+        <div class="metric-value-wrap">
+          <span class="metric-primary-value" id="valLiquidCapital">₹4,180</span>
+        </div>
+        <div class="delta-ghost-pill" id="deltaLiquidPill">
+          <span>Sim: ₹1,681</span>
+          <span class="diff">(-₹2,499)</span>
+        </div>
+        <span class="metric-footer-note">Free cash after commitments & savings</span>
+      </article>
+
+      <!-- 2. SAFE DAILY ALLOWANCE -->
+      <article class="metric-card card-allowance" id="cardAllowance">
+        <div class="metric-header">
+          <span class="metric-title">Safe Daily Allowance</span>
+          <div class="metric-icon-bubble">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+          </div>
+        </div>
+        <div class="metric-value-wrap">
+          <span class="metric-primary-value" id="valDailyAllowance">₹182</span>
+          <span class="metric-unit">/ day</span>
+        </div>
+        <div class="delta-ghost-pill" id="deltaAllowancePill">
+          <span>Sim: ₹73/day</span>
+          <span class="diff">(-60%)</span>
+        </div>
+        <span class="metric-footer-note" id="allowanceDaysNote">Across 23 remaining days</span>
+      </article>
+
+      <!-- 3. PROJECTED MONTH-END BALANCE -->
+      <article class="metric-card card-projected" id="cardProjected">
+        <div class="metric-header">
+          <span class="metric-title">Month-End Forecast</span>
+          <div class="metric-icon-bubble">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
+              <polyline points="17 6 23 6 23 12"></polyline>
+            </svg>
+          </div>
+        </div>
+        <div class="metric-value-wrap">
+          <span class="metric-primary-value" id="valMonthEnd">+₹500</span>
+        </div>
+        <div class="delta-ghost-pill" id="deltaMonthEndPill">
+          <span>Sim: -₹1,999</span>
+          <span class="diff">CRITICAL</span>
+        </div>
+        <span class="metric-footer-note" id="burnTrajectoryNote">Trajectory at ₹160/day burn</span>
+      </article>
+
+      <!-- 4. FINANCIAL RISK INDEX -->
+      <article class="metric-card card-risk" id="cardRisk">
+        <div class="metric-header">
+          <span class="metric-title">Financial Risk Index</span>
+          <span class="status-pill status-safe" id="riskStatusBadge">Low Risk</span>
+        </div>
+        <div class="metric-value-wrap">
+          <span class="metric-primary-value" id="valRiskScore">24</span>
+          <span class="metric-unit">/ 100</span>
+        </div>
+        <div class="delta-ghost-pill" id="deltaRiskPill">
+          <span>Sim: 86/100</span>
+          <span class="diff">(+62 pts)</span>
+        </div>
+        <span class="metric-footer-note" id="riskFactorSummary">Runway: 26.1 days • Buffer: Stable</span>
+      </article>
+    </section>
+
+    <!-- ==========================================================================
+         MAIN DASHBOARD GRID (CHART & WHAT-IF ON LEFT, GOAL & SUBS ON RIGHT)
+         ========================================================================== -->
+    <div class="main-dashboard-grid">
+      <!-- LEFT COLUMN: TRAJECTORY CHART & WHAT-IF SCENARIOS -->
+      <div style="display:flex; flex-direction:column; gap:24px;">
+
+        <!-- 30-DAY TRAJECTORY FORECAST CANVAS CHART -->
+        <article class="chart-card">
+          <div class="card-title-row">
+            <div class="card-title-block">
+              <h3>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--cyan-primary)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                </svg>
+                30-Day Cash Trajectory & Burn Forecast
+              </h3>
+              <p>Dynamic projection updated synchronously across every financial event</p>
+            </div>
+
+            <!-- Dynamic Chart Legend -->
+            <div class="chart-legend">
+              <div class="legend-item">
+                <span class="legend-dot actual"></span>
+                <span>Past (D1–D7)</span>
+              </div>
+              <div class="legend-item">
+                <span class="legend-dot projected"></span>
+                <span>Projected</span>
+              </div>
+              <div class="legend-item" id="ghostLegendItem" style="display:none;">
+                <span class="legend-dot ghost"></span>
+                <span style="color:var(--ghost-magenta); font-weight:800;">Ghost Preview</span>
+              </div>
+              <div class="legend-item">
+                <span class="legend-dot danger"></span>
+                <span>Danger (&lt;₹500)</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Interactive Canvas -->
+          <div class="chart-canvas-container">
+            <canvas id="trajectoryChart"></canvas>
+            <div class="chart-tooltip-overlay" id="chartTooltip">
+              <div class="tooltip-day-title" id="ttDayTitle">Day 14 Forecast</div>
+              <div class="tooltip-val-line">
+                <span>Baseline Balance:</span>
+                <span class="val" id="ttBaselineVal">₹3,060</span>
+              </div>
+              <div class="tooltip-val-line" id="ttGhostRow" style="display:none; color:var(--ghost-magenta);">
+                <span>Ghost Simulation:</span>
+                <span class="val" id="ttGhostVal" style="color:var(--ghost-magenta);">₹1,260</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Micro Insights Bar below chart -->
+          <div class="chart-insights-bar">
+            <div class="insight-metric-item">
+              <span class="insight-label">Current Burn Velocity</span>
+              <span class="insight-val" id="insightBurnRate" style="color:var(--cyan-primary);">₹160.00 / day</span>
+            </div>
+            <div class="insight-metric-item">
+              <span class="insight-label">Runway at Current Pace</span>
+              <span class="insight-val" id="insightRunway">26.1 Days Remaining</span>
+            </div>
+            <div class="insight-metric-item">
+              <span class="insight-label">Projected Broke Day</span>
+              <span class="insight-val" id="insightBrokeDay" style="color:var(--mint-primary);">Financially Solvent ✅</span>
+            </div>
+          </div>
+        </article>
+
+        <!-- WHAT-IF SCENARIOS MATRIX CARD -->
+        <article class="scenarios-deck-card">
+          <div class="card-title-row">
+            <div class="card-title-block">
+              <h3>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--ghost-magenta)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                </svg>
+                What-If Decision Matrix
+              </h3>
+              <p>Stage realistic Gen Z financial choices in Ghost Mode before spending real cash</p>
+            </div>
+
+            <!-- Surprise Shock Button -->
+            <button class="btn-surprise-shock" id="btnSurpriseShock" title="Generate a random realistic financial shock">
+              <span>🎲 Surprise Shock</span>
+            </button>
+          </div>
+
+          <!-- Scenario Filter Chips -->
+          <div class="scenario-filter-chips">
+            <button class="filter-chip active" data-filter="all">All Moves</button>
+            <button class="filter-chip" data-filter="flex">Flex & Lifestyle</button>
+            <button class="filter-chip" data-filter="food">Food & Hangouts</button>
+            <button class="filter-chip" data-filter="gigs">Gigs & Inflow</button>
+            <button class="filter-chip" data-filter="emergency">Emergencies</button>
+            <button class="filter-chip" data-filter="subs">Subscription Cuts</button>
+          </div>
+
+          <!-- Grid of Tap Scenario Cards -->
+          <div class="scenarios-grid" id="scenariosGrid">
+            <!-- Dynamic scenario cards rendered here by JS -->
+          </div>
+        </article>
+
+      </div>
+
+      <!-- RIGHT COLUMN: TARGET SAVINGS GOAL & ACTIVE COMMITMENTS -->
+      <div style="display:flex; flex-direction:column; gap:24px;">
+
+        <!-- TARGET SAVINGS GOAL CARD -->
+        <article class="savings-goal-card">
+          <div class="savings-header">
+            <div>
+              <h3 style="font-size:1.05rem; font-weight:800; color:#fff; display:flex; align-items:center; gap:8px;">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--amber-primary)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <polygon points="12 8 8 12 12 16 16 12 12 8"></polygon>
+                </svg>
+                Ring-Fenced Savings Target
+              </h3>
+              <p style="font-size:0.76rem; color:var(--text-muted);">Protected capital separated from discretionary spending</p>
+            </div>
+            <div class="savings-goal-pill" id="savingsGoalTag">
+              <span>🌴 Goa Trip Fund</span>
+            </div>
+          </div>
+
+          <!-- Goal Preset Chips -->
+          <div class="goal-presets-strip">
+            <button class="goal-preset-chip active" data-goal-val="1500" data-goal-name="Goa Trip 🌴">Goa Trip (₹1.5K)</button>
+            <button class="goal-preset-chip" data-goal-val="3000" data-goal-name="iPhone EMI 📱">iPhone EMI (₹3K)</button>
+            <button class="goal-preset-chip" data-goal-val="2000" data-goal-name="Emergency 🛡️">Emergency (₹2K)</button>
+            <button class="goal-preset-chip" data-goal-val="2500" data-goal-name="Music Fest 🎸">Music Fest (₹2.5K)</button>
+          </div>
+
+          <!-- Progress Track -->
+          <div class="savings-progress-track">
+            <div class="savings-progress-fill" id="savingsProgressFill" style="width: 94%;"></div>
+            <div class="savings-progress-ghost" id="savingsProgressGhost" style="width: 35%;"></div>
+          </div>
+
+          <!-- Stats Row -->
+          <div class="savings-stats-row">
+            <div>
+              <span>Ring-Fenced: </span>
+              <span class="num" id="savingsGoalAmount">₹1,500</span>
+            </div>
+            <div>
+              <span id="savingsProbability" style="color:var(--mint-primary); font-weight:800;">94% Arrival Rate</span>
+            </div>
+          </div>
+
+          <!-- Custom Target Slider -->
+          <div class="savings-controls-strip">
+            <label for="savingsTargetSlider">Adjust Goal: <strong id="sliderSavingsDisplay" style="color:var(--amber-primary);">₹1,500</strong></label>
+            <input 
+              type="range" 
+              id="savingsTargetSlider" 
+              class="savings-range-input" 
+              min="0" 
+              max="4000" 
+              step="100" 
+              value="1500"
+            >
+          </div>
+        </article>
+
+        <!-- ACTIVE COMMITMENTS & SUBSCRIPTIONS DECK -->
+        <article class="commitments-card">
+          <div class="card-title-row">
+            <div class="card-title-block">
+              <h3>
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--indigo-primary)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+                  <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+                </svg>
+                Fixed Commitments & Subscriptions
+              </h3>
+              <p>Toggle recurring bills to immediately free up liquid daily cash</p>
+            </div>
+          </div>
+
+          <!-- Commitments Total Bar -->
+          <div class="commitments-total-bar">
+            <span class="commitments-total-label">Active Recurring Commitments:</span>
+            <span class="commitments-total-val" id="totalCommitmentsVal">₹3,200</span>
+          </div>
+
+          <!-- Subscriptions List with Toggles -->
+          <div class="subs-list" id="subscriptionsList">
+            <!-- Dynamic Subscriptions Rows Rendered Here by JS -->
+          </div>
+        </article>
+
+      </div>
+    </div>
+
+    <!-- ==========================================================================
+         SECONDARY DASHBOARD GRID (LEDGER & VIBE CHECK AI)
+         ========================================================================== -->
+    <div class="secondary-dashboard-grid">
+      <!-- LIVED-IN DISCRETIONARY SPEND LEDGER -->
+      <article class="history-card">
+        <div class="card-title-row">
+          <div class="card-title-block">
+            <h3>
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--cyan-primary)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="8" y1="6" x2="21" y2="6"></line>
+                <line x1="8" y1="12" x2="21" y2="12"></line>
+                <line x1="8" y1="18" x2="21" y2="18"></line>
+                <line x1="3" y1="6" x2="3.01" y2="6"></line>
+                <line x1="3" y1="12" x2="3.01" y2="12"></line>
+                <line x1="3" y1="18" x2="3.01" y2="18"></line>
+              </svg>
+              Lived-In Discretionary Spend (Days 1–<span id="ledgerDaySpan">7</span>)
+            </h3>
+            <p>Chronological expenditure log affecting remaining liquid allowance</p>
+          </div>
+
+          <button class="btn-add-tx" id="openCustomMoveBtn">
+            <span>+ Add Custom Move</span>
+          </button>
+        </div>
+
+        <div class="tx-list" id="transactionLedgerList">
+          <!-- Dynamic ledger items rendered here by JS -->
+        </div>
+      </article>
+
+      <!-- GEN Z VIBE CHECK AI COPILOT CARD -->
+      <article class="vibe-ai-card">
+        <div class="card-title-row">
+          <div class="ai-header-badge">
+            <div class="ai-bot-avatar">⚡</div>
+            <div>
+              <h3 style="font-size:1.05rem; font-weight:800; color:#fff;">Vibe Check AI Copilot</h3>
+              <p style="font-size:0.75rem; color:var(--text-muted);">Unfiltered financial reality check for your current burn</p>
+            </div>
+          </div>
+          <span class="vibe-badge-pill" id="vibeCheckBadge" style="background:rgba(0, 242, 152, 0.18); color:var(--mint-primary); border:1px solid rgba(0, 242, 152, 0.35);">Chill & Solvent</span>
+        </div>
+
+        <div class="vibe-message-bubble">
+          <p class="vibe-quote-text" id="vibeAiQuote">
+            "You’re cruising at ₹160/day burn. Keep this up and the Goa trip is locked. Just don't let 2 AM Swiggy cravings ruin the grind."
+          </p>
+          <div class="vibe-metrics-micro">
+            <span>Discipline Rating: <strong id="disciplineRating" style="color:#fff;">8.4 / 10</strong></span>
+            <span>•</span>
+            <span>Bro-Is-Cooked Meter: <strong id="broIsCookedMetric" style="color:var(--mint-primary);">0% (Safe)</strong></span>
+          </div>
+        </div>
+      </article>
+    </div>
+
+  </div> <!-- End .app-container -->
+
+  <!-- ==========================================================================
+       FLOATING DOCKED BAR
+       ========================================================================== -->
+  <aside class="floating-dock-bar" id="floatingDockBar" aria-label="Quick Actions Dock">
+    <div class="dock-left-info">
+      <div class="dock-sim-icon">🧪</div>
+      <div class="dock-sim-text">
+        <h4>What-If Sandbox Engine</h4>
+        <p>Test expenses or side-hustles without risking real rupees</p>
+      </div>
+    </div>
+
+    <div class="dock-center-preview">
+      <div class="dock-metric-preview">
+        <span class="dock-metric-label">Liquid Capital</span>
+        <span class="dock-metric-val" id="dockLiquidVal">₹4,180</span>
+      </div>
+      <span class="dock-arrow">➔</span>
+      <div class="dock-metric-preview">
+        <span class="dock-metric-label">Daily Safe</span>
+        <span class="dock-metric-val" id="dockAllowanceVal">₹182/day</span>
+      </div>
+      <span class="dock-arrow">➔</span>
+      <div class="dock-metric-preview">
+        <span class="dock-metric-label">Health</span>
+        <span class="dock-metric-val" id="dockHealthVal">84/100</span>
+      </div>
+    </div>
+
+    <button class="btn-open-drawer" id="btnOpenSimulatorDrawer">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+      </svg>
+      <span>Test "What-If" Move</span>
+    </button>
+  </aside>
+
+  <!-- ==========================================================================
+       SLIDE-OUT SIMULATOR DRAWER MODAL
+       ========================================================================== -->
+  <div class="modal-backdrop" id="simulatorModalBackdrop">
+    <div class="drawer-panel" id="simulatorDrawerPanel" role="dialog" aria-modal="true" aria-labelledby="drawerTitle">
+      <!-- Drawer Header -->
+      <div class="drawer-header">
+        <div class="drawer-title-group">
+          <h3 id="drawerTitle">
+            <span style="color:var(--ghost-magenta);">🧪</span>
+            What-If Decision Simulator
+          </h3>
+          <p>Stage financial moves in Ghost Mode to preview ripple effects</p>
+        </div>
+        <button class="drawer-close-btn" id="drawerCloseBtn" aria-label="Close Drawer">✕</button>
+      </div>
+
+      <!-- Drawer Body -->
+      <div class="drawer-body">
+        <!-- Tabs: Quick Presets vs Custom Builder -->
+        <div class="drawer-tabs">
+          <button class="drawer-tab-btn active" id="tabQuickPresetsBtn">Quick Presets</button>
+          <button class="drawer-tab-btn" id="tabCustomMoveBtn">Custom Move Builder</button>
+        </div>
+
+        <!-- Tab 1: Presets List -->
+        <div id="drawerPresetsTabContent" style="display:flex; flex-direction:column; gap:12px;">
+          <div class="drawer-presets-scroll" id="drawerPresetsList">
+            <!-- Dynamic Presets Rendered by JS -->
+          </div>
+        </div>
+
+        <!-- Tab 2: Custom Move Form -->
+        <div id="drawerCustomTabContent" style="display:none; flex-direction:column; gap:16px;">
+          <div class="form-group">
+            <label class="form-label" for="customMoveName">Description / Title</label>
+            <input type="text" id="customMoveName" class="form-input" placeholder="e.g. Swiggy Late Night Craving" value="Concert VIP Pass">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="customMoveAmount">Amount (₹)</label>
+            <input type="number" id="customMoveAmount" class="form-input form-input-currency" placeholder="0" value="1500" min="1">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Type of Action</label>
+            <div class="type-selector-strip">
+              <button type="button" class="type-btn selected-expense" id="btnTypeExpense">💸 Expense</button>
+              <button type="button" class="type-btn" id="btnTypeIncome">💰 Inflow / Income</button>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Category</label>
+            <div class="category-pills-wrap">
+              <button type="button" class="cat-pill active" data-cat="Lifestyle">Lifestyle</button>
+              <button type="button" class="cat-pill" data-cat="Food">Food & Craving</button>
+              <button type="button" class="cat-pill" data-cat="Side Gig">Side Gig</button>
+              <button type="button" class="cat-pill" data-cat="Emergency">Emergency</button>
+              <button type="button" class="cat-pill" data-cat="Shopping">Shopping</button>
+            </div>
+          </div>
+
+          <button type="button" class="btn-stage-custom" id="btnApplyCustomSim">
+            <span>Stage Move into Ghost Mode ➔</span>
+          </button>
+        </div>
+
+        <!-- Live Impact Comparison Box -->
+        <div class="impact-preview-box" id="impactPreviewBox">
+          <!-- Live diff tiles rendered by JS -->
+        </div>
+      </div>
+
+      <!-- Drawer Footer Actions -->
+      <div class="drawer-footer">
+        <button class="btn-drawer-commit" id="btnDrawerCommit">
+          <span>⚡ Commit to Reality</span>
+        </button>
+        <button class="btn-drawer-discard" id="btnDrawerDiscard">
+          <span>✕ Discard Preview</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- JavaScript Engine -->
+  <script src="app.js"></script>
+</body>
+</html>
