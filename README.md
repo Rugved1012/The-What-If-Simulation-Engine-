@@ -80,3 +80,4 @@
 
 ## 🚀 How to Run
 Open [**`index.html`**](file:///c:/Users/Rugved/OneDrive/Desktop/clone/The%20What-If%20Simulation%20Engine/index.html) directly in any web browser.
+or click on this link https://the-what-if-simulation-engine.netlify.app
